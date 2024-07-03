@@ -34,6 +34,14 @@
       permission="cmf.ManagePortal"
       />
 
+    <browser:page
+      name="ploneAddSite"
+      for="OFS.Folder.Folder"
+      class=".admin.Overview"
+      template="templates/plone-overview.pt"
+      permission="cmf.ManagePortal"
+      />
+
   <browser:page
       name="dist-image"
       for="OFS.interfaces.IApplication"
