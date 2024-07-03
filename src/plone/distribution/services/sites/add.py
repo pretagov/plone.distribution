@@ -43,9 +43,14 @@ class SiteCreate(Service):
         if not validate_answers(answers=data, schema=distribution.schema):
             raise BadRequest("Invalid data for site creation.")
 
+        context = self.context
+        path = data.get("pathname")
+        if path:
+            context = self.context.restrictedTraverse(path)
+
         try:
             site = site_api.create(
-                self.context,
+                context,
                 distribution_name=distribution_name,
                 answers=data,
             )
