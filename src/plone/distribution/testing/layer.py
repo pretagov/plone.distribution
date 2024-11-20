@@ -8,6 +8,7 @@ from plone.app.testing.interfaces import TEST_USER_PASSWORD
 from plone.app.testing.interfaces import TEST_USER_ROLES
 from plone.app.testing.layers import PloneFixture
 from plone.testing import zope
+from zope.globalrequest import setRequest
 
 
 DEFAULT_DISTRIBUTION = "default"
@@ -15,6 +16,7 @@ DEFAULT_ANSWERS = {
     "site_id": PLONE_SITE_ID,
     "title": "Plone Site",
     "description": "A Plone Site",
+    "site_logo": "name=teste;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",  # noQA
     "default_language": "en",
     "portal_timezone": "America/Sao_Paulo",
     "setup_content": True,
@@ -33,7 +35,6 @@ class PloneDistributionFixture(PloneFixture):
     _distribution_products = (
         ("plone.app.contenttypes", {"loadZCML": True}),
         ("plone.restapi", {"loadZCML": True}),
-        ("collective.exportimport", {"loadZCML": True}),
         ("plone.volto", {"loadZCML": True, "silent": True}),
         ("plone.distribution", {"loadZCML": True}),
     )
@@ -66,6 +67,7 @@ class PloneDistributionFixture(PloneFixture):
             SITE_OWNER_NAME, SITE_OWNER_PASSWORD, ["Manager"], []
         )
 
+        setRequest(app.REQUEST)
         zope.login(app["acl_users"], SITE_OWNER_NAME)
         sites = self.sites
         for distribution_name, answers in sites:
@@ -85,3 +87,4 @@ class PloneDistributionFixture(PloneFixture):
 
         # Log out again
         zope.logout()
+        setRequest(None)

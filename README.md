@@ -6,37 +6,48 @@
   Plone Distributions
 </h1>
 
-Package supporting the (easy) implementation of a Plone Distribution.
+Package supporting the (easy) implementation of a Plone distribution.
 
-## What is a Plone Distribution
 
-A Plone distribution is a pre-packaged version of Plone that includes specific features, themes, modules, and configurations. It is a convenient way to get a specific type of website up and running quickly, as the distribution includes everything needed to run that type of site.
+## What is a Plone distribution
+
+A Plone distribution is a pre-packaged version of Plone that includes specific features, themes, modules, and configurations.
+It is a convenient way to get a specific type of website up and running quickly, as the distribution includes everything needed to run that type of site.
 
 Examples of Plone distributions include:
 
-* [SENAITE](https://www.senaite.com)
-* [Quaive](https://quaivecloud.com/)
-* [Portal Modelo](https://www.interlegis.leg.br/produtos-servicos/portal-modelo/)
-* [Portal Padrão](https://identidade-digital-de-governo-plone.readthedocs.io/en/latest/)
+- [SENAITE](https://www.senaite.com)
+- [Quaive](https://quaivecloud.com/)
+- [Portal Modelo](https://www.interlegis.leg.br/produtos-servicos/portal-modelo/)
+- [Portal Padrão](https://identidade-digital-de-governo-plone.readthedocs.io/en/latest/)
 
 ### Similar Concept in Other CMS
 
-* Drupal: Drupal has distributions for blogs, e-commerce sites, and intranet portals.
+- **Drupal:** Drupal has distributions for blogs, e-commerce sites, and intranet portals.
 
-* WordPress: WordPress has a similar concept in the form of "WordPress Multisite," which allows users to run multiple websites from a single installation of WordPress.
+- **WordPress:** WordPress has a similar concept in the form of "WordPress Multisite," which allows users to run multiple websites from a single installation of WordPress.
 
-* Joomla: Joomla has a similar concept in the form of "Joomla Templates," which are pre-designed templates for Joomla websites.
+- **Joomla:** Joomla has a similar concept in the form of "Joomla Templates," which are pre-designed templates for Joomla websites.
 
-* TYPO3: TYPO3 has a similar concept in the form of "TYPO3 Distributions," which are pre-configured installations of TYPO3 for specific types of websites.
+- **TYPO3:** TYPO3 has a similar concept in the form of "TYPO3 Distributions," which are pre-configured installations of TYPO3 for specific types of websites.
 
-## Creating a new Distribution
+## `plone.distribution` versions
 
-First of all, a Plone Distribution is a Python Package that can be installed by `pip`.
+| Releases |Description | Status | Supported Plone Versions |
+| --- | --- | --- | --- |
+| 3.x | Core package of Plone | In development  | 6.1 |
+| 2.x | Add-on package, uses plone.exportimport for content creation. | Maintenance | 6.0 |
+| 1.x | Add-on package, uses collective.exportimport for content creation. | Deprecated | 6.0 |
+
+## Creating a new distribution
+
+A Plone distribution is a Python Package that can be installed by `pip`.
 
 ### `setup.py`
+
 The package will follow some conventions, to make it "discoverable" by others.
 
-In `setup.py`, always add the correct Trove Classifiers:
+In `setup.py`, always add the correct Trove classifiers:
 
 ```python
         "Framework :: Plone",
@@ -56,7 +67,7 @@ and also require `plone.distribution` to be available:
 
 ### `configure.zcml`
 
-In your main `configure.zcml`, make sure to have the `plone` xml namespace declared:
+In your main `configure.zcml`, make sure to have the `plone` XML namespace declared:
 
 ```xml
 <configure
@@ -68,23 +79,56 @@ In your main `configure.zcml`, make sure to have the `plone` xml namespace decla
 And also include `plone.distribution`:
 
 ```xml
-  <include package="plone.distribution" />
+<include package="plone.distribution" />
 ```
 
 Then declare the distributions included in your package:
 
 ```xml
-
   <plone:distribution
       name="blog"
       title="Personal Blog"
       description="A Plone site already configured to host a personal Blog."
       directory="distributions/blog"
       />
-
 ```
 
 The registered distribution will configure a Personal Blog, with some default content.
+
+#### distribution handlers
+
+When registering a distribution, you can provide a `pre_handler`, a `handler` and a `post_handler` which must be
+functions with the following signatures.
+
+```python
+def pre_handler(answers: dict) -> dict:
+    return answers
+
+def handler(distribution: Distribution, site, answers: dict):
+    return site
+
+def post_handler(distribution: Distribution, site, answers: dict):
+    return site
+```
+
+Each of those handlers will be called in this way:
+
+- `pre_handler`: it will process the answers to do modifications on them before creating the site
+- `handler`: it will be run after the bare Plone site will be created, but instead of the default handler that installs the required GenericSetup profiles and creates the content.
+- `post_handler`: it will be run after the site is set up.
+
+If you have added some extra fields in the Plone site creation form and want to do some extra configuration in the
+Plone site, you can add your own handler and register as follows:
+
+```xml
+  <plone:distribution
+      name="blog"
+      title="Personal Blog"
+      description="A Plone site already configured to host a personal Blog."
+      directory="distributions/blog"
+      post_handler=".handlers.blog.post_handler"
+      />
+```
 
 ### distribution folder
 
@@ -102,9 +146,9 @@ A `JSON` file with the GenericSetup profiles that are used by your distribution 
 
 This file needs to contain two keys:
 
-* **base**: List of profiles installed in every new site using this distribution.
+- **base**: List of profiles installed in every new site using this distribution.
 
-* **content**: List of profiles installed when the user decides to create a site with example content.
+- **content**: List of profiles installed when the user decides to create a site with example content.
 
 The configuration for a new Volto site is:
 
@@ -122,23 +166,64 @@ The configuration for a new Volto site is:
 }
 ```
 
+#### How to add an add-on
+
+If you want to add a Plone backend add-on to your Plone distribution, then you must perform the following steps.
+
+Add your add-on, such as `collective.person`, to your `setup.py`:
+
+```python
+    install_requires=[
+        "setuptools",
+        "Plone",
+        "plone.distribution>=1.0.0b2",
+        "plone.api",
+        "collective.person",
+    ],
+```
+
+Add it to your `dependencies.zcml`:
+
+```xml
+  <!-- List all packages you depend here -->
+  <include package="plone.volto" />
+  <include package="plone.restapi" />
+  <include package="collective.person" />
+  <include package="plone.distribution" />
+
+</configure>
+```
+
+Add it to your `profiles.json`:
+
+```json
+  "base": [
+    "plone.app.contenttypes:default",
+    "plone.app.caching:default",
+    "plone.restapi:default",
+    "plone.volto:default",
+    "collective.person:default",
+    "plonetheme.barceloneta:default"
+  ],
+```
+
 ### `schema.json`
 
 In case you require additional input from the user during site creation, you can customize the form using the `schema.json` file.
 
 The file should contain two keys:
 
-* **schema**: A JSON Schema definition.
-* **uischema**: A [react-jsonschema-form](https://rjsf-team.github.io/react-jsonschema-form/docs/) configuration to modify how the form is displayed.
+- **schema**: A JSON Schema definition.
+- **uischema**: A [react-jsonschema-form](https://rjsf-team.github.io/react-jsonschema-form/docs/) configuration to modify how the form is displayed.
 
 The **schema** should have at least the following keys:
 
-* site_id
-* title
-* description
-* default_language
-* portal_timezone
-* setup_content
+- site_id
+- title
+- description
+- default_language
+- portal_timezone
+- setup_content
 
 The `schema.json` used for the default site creation is:
 
@@ -203,7 +288,15 @@ Both definitions are added in runtime by `plone.distribution` to provide a list 
 
 ### `content` folder
 
-Folder containing JSON data exported using the `@@dist_export_all` browser view of this package.
+Folder containing JSON data representing this distribution's content.
+
+To export content from a site into this folder, use the `bin/export-distribution` script.
+
+```shell
+bin/export-distribution path/to/zope.conf Plone
+```
+
+> In the example above, "Plone" is the ID of the Plone site to export.
 
 ## Advanced Usage
 
@@ -211,15 +304,14 @@ Folder containing JSON data exported using the `@@dist_export_all` browser view 
 
 By default, `plone.distribution` ships with two ready-to-use distributions:
 
-* **default**: Plone Site (Volto frontend)
-* **classic**: Plone Site (Classic UI)
+- **default**: Plone Site (Volto frontend)
+- **classic**: Plone Site (Classic UI)
 
 If you want to limit your users option to select a distribution, it is possible to set the environment variable `ALLOWED_DISTRIBUTIONS` with fewer options:
 
 ```shell
 ALLOWED_DISTRIBUTIONS=default
 ```
-
 
 ## This project is supported by
 
@@ -230,4 +322,5 @@ ALLOWED_DISTRIBUTIONS=default
 </p>
 
 ## License
+
 The project is licensed under the GPLv2.

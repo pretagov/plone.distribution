@@ -55,7 +55,7 @@ export const DistributionsForm = ({
 
   async function onSubmit(value: any) {
     const pathname = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-    const body = JSON.stringify({ ...value.formData, distribution, pathname });
+    const body = { ...value.formData, distribution, pathname };
     mutation.mutate(body);
   }
 
