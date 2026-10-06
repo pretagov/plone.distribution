@@ -3,6 +3,13 @@ import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 axios.defaults.headers.common['Accept'] = 'application/json';
 
+// The @sites service lives on the Zope root, also when this page is shown on
+// a folder below it. The page template gives the root URL.
+const apiBase = document.getElementById('root')?.dataset.apiBase;
+if (apiBase) {
+  axios.defaults.baseURL = apiBase;
+}
+
 export type Distribution = {
   '@id': string;
   name: string;

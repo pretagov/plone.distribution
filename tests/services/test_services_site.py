@@ -4,6 +4,7 @@ from plone.app.testing import SITE_OWNER_PASSWORD
 from plone.restapi.testing import RelativeSession
 
 import pytest
+import transaction
 
 
 class TestServicesSite:
@@ -81,6 +82,26 @@ class TestServicesSitesPOST(TestServicesSite):
         data = response.json()
         assert data["id"] == "PloneBrasil"
         assert data["@type"] == "Plone Site"
+
+    def test_sites_create_in_folder(self, app):
+        """A site can be added to a folder below the Zope root."""
+        app.manage_addFolder("mnt")
+        transaction.commit()
+        answers = {**self.answers, "pathname": "/mnt"}
+        response = self.api_session.post("@sites/testing", json=answers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["@id"] == f"{app.absolute_url()}/mnt/PloneBrasil"
+        assert "PloneBrasil" not in app.objectIds()
+
+    def test_add_site_form_in_folder(self, app):
+        app.manage_addFolder("mnt")
+        transaction.commit()
+        self.api_session.headers.pop("Accept")
+        response = self.api_session.get("mnt/@@ploneAddSite")
+        assert response.status_code == 200
+        assert f'data-api-base="{app.absolute_url()}/"' in response.text
+        assert 'data-container-path="/mnt"' in response.text
 
     @pytest.mark.parametrize(
         "distribution_name",

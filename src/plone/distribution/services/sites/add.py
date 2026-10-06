@@ -45,9 +45,16 @@ class SiteCreate(Service):
         if not validate_answers(answers=data, schema=distribution.schema):
             raise BadRequest("Invalid data for site creation.")
 
+        # Sites can be added to a folder below the Zope root. The form posts
+        # to the root's @sites service and names the folder in "pathname".
+        context = self.context
+        path = data.get("pathname")
+        if path:
+            context = context.restrictedTraverse(path)
+
         try:
             site = site_api.create(
-                self.context,
+                context,
                 distribution_name=distribution_name,
                 answers=data,
             )

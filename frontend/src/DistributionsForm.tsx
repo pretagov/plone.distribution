@@ -54,7 +54,13 @@ export const DistributionsForm = ({
   };
 
   async function onSubmit(value: any) {
-    const body = { ...value.formData, distribution };
+    // Folder to add the site to, when the form is shown below the Zope root.
+    const pathname = document.getElementById('root')?.dataset.containerPath;
+    const body = {
+      ...value.formData,
+      distribution,
+      ...(pathname ? { pathname } : {}),
+    };
     mutation.mutate(body);
   }
 

@@ -48,6 +48,17 @@ class RestTraverser(AppTraverser):
 class Overview(BrowserView):
     """Overview page for Zope Root."""
 
+    def app_url(self):
+        """URL of the Zope root, where the @sites service lives."""
+        return self.context.getPhysicalRoot().absolute_url()
+
+    def container_path(self):
+        """Physical path of the folder new sites are added to.
+
+        Empty for the Zope root.
+        """
+        return "/".join(self.context.getPhysicalPath())
+
 
 class AddPloneSite(AddPloneSiteView):
     """Add Plone site."""

@@ -38,6 +38,9 @@
 
 
   <body>
-    <div id="root"></div>
+    <div id="root"
+         data-api-base="${view/app_url}/"
+         data-container-path="${view/container_path}"
+    ></div>
   </body>
 </html>
